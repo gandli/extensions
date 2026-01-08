@@ -102,10 +102,10 @@ async function getFrontmostApplication(): Promise<Application>;
 ```typescript
 import { getFrontmostApplication } from "@raycast/api";
 
-export default async function Command() => {
+export default async function Command() {
   const frontmostApplication = await getFrontmostApplication();
   console.log(`The frontmost application is: ${frontmostApplication.name}`);
-};
+}
 ```
 
 #### Return
@@ -245,8 +245,7 @@ export default async function Command() {
 
 | Name | Description | Type |
 | :--- | :--- | :--- |
-| target<mark style="color:red;">*</mark> | The file, folder or URL to open. | <code>string</code> |
-| application | The application name to use for opening the file. If no application is specified, the default application as determined by the system  is used to open the specified file. Note that you can use the application name, app identifier, or absolute path to the app. | <code>string</code> or <code>[Application](utilities.md#application)</code> |
+| exception<mark style="color:red;">*</mark> | The exception you want to report. | <code>unknown</code> |
 
 ## Types
 
@@ -254,7 +253,7 @@ export default async function Command() {
 
 An object that represents a locally installed application on the system.
 
-It can be used to open files or folders in a specific application. Use [getApplications](#getapplications) or 
+It can be used to open files or folders in a specific application. Use [getApplications](#getapplications) or
 [getDefaultApplication](#getdefaultapplication) to get applications that can open a specific file or folder.
 
 #### Properties

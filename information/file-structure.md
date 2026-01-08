@@ -10,7 +10,6 @@ The typical directory structure of a newly created extension looks like this:
 
 ```bash
 extension
-├── .gitignore
 ├── .prettierrc
 ├── assets
 │   └── icon.png
