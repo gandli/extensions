@@ -358,21 +358,26 @@ async function checkForAiInPullRequestDiff(
 async function checkForDocsInPullRequestDiff(
   { github, context }: Pick<API, "github" | "context">
 ): Promise<boolean> {
-  const { data: files } = await github.rest.pulls.listFiles({
-    owner: context.repo.owner,
-    repo: context.repo.repo,
-    pull_number: context.issue.number,
-  });
+  try {
+    const { data: files } = await github.rest.pulls.listFiles({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      pull_number: context.issue.number,
+    });
 
-  for (const file of files) {
-    const filePath = file.filename;
+    for (const file of files) {
+      const filePath = file.filename;
 
-    if (/^docs\//.test(filePath)) {
-      return true;
+      if (/^docs\//.test(filePath)) {
+        return true;
+      }
     }
-  }
 
-  return false;
+    return false;
+  } catch (error) {
+    console.error("Failed to check for docs in PR diff:", error);
+    return false;
+  }
 }
 
 async function getPlatformsFromPullRequestDiff(
