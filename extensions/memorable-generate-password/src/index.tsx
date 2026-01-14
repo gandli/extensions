@@ -14,7 +14,7 @@ import {
 } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
 import generatePassword, { PasswordOptions, CasingMode, WordListType } from "./generatePassword";
-import { getLanguage, t } from "./translations";
+import { en } from "./translations";
 
 interface PasswordArguments {
   wordCount?: string;
@@ -26,7 +26,6 @@ export default function Command(props: LaunchProps<{ arguments: PasswordArgument
   const preferences = getPreferenceValues<Preferences>();
 
   const [selectedWordList, setSelectedWordList] = useState<WordListType>(preferences.wordList);
-  const lang = getLanguage(preferences.language);
 
   const parseNumber = (val: string | undefined, def: string) => {
     const n = parseInt(val ?? def, 10);
@@ -79,36 +78,36 @@ export default function Command(props: LaunchProps<{ arguments: PasswordArgument
     strength >= 4 ? Color.Green : strength >= 3 ? Color.Orange : Color.Red;
 
   const getStrengthLabel = (entropy: number) => {
-    if (entropy >= 60) return t("strengthVeryStrong", lang);
-    if (entropy >= 40) return t("strengthStrong", lang);
-    if (entropy >= 25) return t("strengthModerate", lang);
-    return t("strengthWeak", lang);
+    if (entropy >= 60) return en.strengthVeryStrong;
+    if (entropy >= 40) return en.strengthStrong;
+    if (entropy >= 25) return en.strengthModerate;
+    return en.strengthWeak;
   };
 
   const handleCopy = async (text: string, type: "password" | "plaintext") => {
     await Clipboard.copy(text);
-    void showToast(Toast.Style.Success, t(type === "password" ? "passwordCopied" : "plaintextCopied", lang));
+    void showToast(Toast.Style.Success, type === "password" ? en.passwordCopied : en.plaintextCopied);
   };
 
   const wordLists: { title: string; value: WordListType }[] = [
-    { title: t("oxford", lang), value: "oxford" },
-    { title: t("idioms", lang), value: "idioms" },
-    { title: t("poetry", lang), value: "poetry" },
-    { title: t("tech", lang), value: "tech" },
-    { title: t("nature", lang), value: "nature" },
-    { title: t("custom", lang), value: "custom" },
+    { title: en.oxford, value: "oxford" },
+    { title: en.idioms, value: "idioms" },
+    { title: en.poetry, value: "poetry" },
+    { title: en.tech, value: "tech" },
+    { title: en.nature, value: "nature" },
+    { title: en.custom, value: "custom" },
   ];
 
   return (
     <List
       isLoading={isLoading}
       isShowingDetail
-      searchBarPlaceholder={t("searchPlaceholder", lang)}
+      searchBarPlaceholder={en.searchPlaceholder}
       searchBarAccessory={
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (
           <List.Dropdown
-            tooltip={t("wordListDropdownTitle", lang)}
+            tooltip={en.wordListDropdownTitle}
             value={selectedWordList}
             onChange={(v) => setSelectedWordList(v as WordListType)}
           >
@@ -125,7 +124,7 @@ export default function Command(props: LaunchProps<{ arguments: PasswordArgument
       {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (
-          <List.Section title={t("results", lang)} subtitle={t("itemsCount", lang, { count: data.length })}>
+          <List.Section title={en.results} subtitle={en.itemsCount.replace("{count}", String(data.length))}>
             {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               data.map((p, index) => {
@@ -153,7 +152,7 @@ export default function Command(props: LaunchProps<{ arguments: PasswordArgument
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       (
                         <List.Item.Detail
-                          markdown={`### ${t("componentsLabel", lang)}\n${words
+                          markdown={`### ${en.componentsLabel}\n${words
                             .map((w: string) => `\`${w}\``)
                             .join("  •  ")}`}
                           metadata={
@@ -165,7 +164,7 @@ export default function Command(props: LaunchProps<{ arguments: PasswordArgument
                                   (
                                     <>
                                       <List.Item.Detail.Metadata.TagList
-                                        title={t("strengthLabel", lang)}
+                                        title={en.strengthLabel}
                                         children={
                                           // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                           (<List.Item.Detail.Metadata.TagList.Item text={label} color={color} />) as any
@@ -173,15 +172,15 @@ export default function Command(props: LaunchProps<{ arguments: PasswordArgument
                                       />
                                       <List.Item.Detail.Metadata.Separator />
                                       <List.Item.Detail.Metadata.Label
-                                        title={t("wordCount", lang)}
+                                        title={en.wordCount}
                                         text={String(words.length)}
                                       />
                                       <List.Item.Detail.Metadata.Label
-                                        title={t("totalLength", lang)}
+                                        title={en.totalLength}
                                         text={String(p.password.length)}
                                       />
                                       <List.Item.Detail.Metadata.Label
-                                        title={t("entropy", lang)}
+                                        title={en.entropy}
                                         text={`${Math.round(p.entropy)} bits`}
                                       />
                                     </>
@@ -202,18 +201,18 @@ export default function Command(props: LaunchProps<{ arguments: PasswordArgument
                             (
                               <>
                                 <ActionPanel.Section
-                                  title={t("copyActions", lang)}
+                                  title={en.copyActions}
                                   children={
                                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                     (
                                       <>
                                         <Action.CopyToClipboard
-                                          title={t("copyPassword", lang)}
+                                          title={en.copyPassword}
                                           content={p.password}
                                           onCopy={() => handleCopy(p.password, "password")}
                                         />
                                         <Action.CopyToClipboard
-                                          title={t("copyPlaintext", lang)}
+                                          title={en.copyPlaintext}
                                           content={p.plaintext}
                                           shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
                                           onCopy={() => handleCopy(p.plaintext, "plaintext")}
@@ -224,12 +223,12 @@ export default function Command(props: LaunchProps<{ arguments: PasswordArgument
                                 />
 
                                 <ActionPanel.Section
-                                  title={t("generationActions", lang)}
+                                  title={en.generationActions}
                                   children={
                                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                     (
                                       <Action
-                                        title={t("regenerate", lang)}
+                                        title={en.regenerate}
                                         icon={Icon.RotateAntiClockwise}
                                         shortcut={{ modifiers: ["cmd"], key: "r" }}
                                         onAction={revalidate}
@@ -239,12 +238,12 @@ export default function Command(props: LaunchProps<{ arguments: PasswordArgument
                                 />
 
                                 <ActionPanel.Section
-                                  title={t("systemActions", lang)}
+                                  title={en.systemActions}
                                   children={
                                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                     (
                                       <Action
-                                        title={t("openPreferences", lang)}
+                                        title={en.openPreferences}
                                         icon={Icon.Gear}
                                         shortcut={{ modifiers: ["cmd", "shift"], key: "," }}
                                         onAction={openCommandPreferences}
