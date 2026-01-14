@@ -105,7 +105,7 @@ export const translations = {
 
 export function getLanguage(preferencesLanguage: string): Language {
   if (preferencesLanguage === "auto") {
-    return (environment as any).language === "zh" ? "zh" : "en";
+    return (environment as unknown as { language: string }).language === "zh" ? "zh" : "en";
   }
   return preferencesLanguage as Language;
 }

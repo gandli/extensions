@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   LaunchProps,
   Icon,
@@ -37,22 +37,17 @@ export default function Command(props: LaunchProps<{ arguments: PasswordArgument
   }>();
 
   const [selectedWordList, setSelectedWordList] = useState<WordListType>(preferences.wordList);
-
   const lang = getLanguage(preferences.language);
 
-  const parseNumber = (val: string | undefined, defaultVal: string): number => {
-    const num = parseInt(val || defaultVal, 10);
-    return isNaN(num) ? parseInt(defaultVal, 10) : num;
+  const parseNumber = (val: string | undefined, def: string) => {
+    const n = parseInt(val ?? def, 10);
+    return isNaN(n) ? parseInt(def, 10) : n;
   };
 
-  const validWordCount = parseNumber(props.arguments.wordCount, preferences.defaultWordCount);
-  const validPasswordCount = parseNumber(props.arguments.passwordCount, preferences.defaultPasswordCount);
-  const finalSeparator = props.arguments.separator !== undefined ? props.arguments.separator : preferences.separator;
-
   const options: PasswordOptions = {
-    wordCount: validWordCount,
-    passwordCount: validPasswordCount,
-    separator: finalSeparator,
+    wordCount: parseNumber(props.arguments.wordCount, preferences.defaultWordCount),
+    passwordCount: parseNumber(props.arguments.passwordCount, preferences.defaultPasswordCount),
+    separator: props.arguments.separator ?? preferences.separator,
     casing: preferences.casing,
     wordListType: selectedWordList,
     customPath: preferences.customWordListPath,
@@ -61,22 +56,16 @@ export default function Command(props: LaunchProps<{ arguments: PasswordArgument
     suffix: preferences.suffix,
   };
 
-  const { data, isLoading, revalidate } = useCachedPromise(
-    async (opts: PasswordOptions) => {
-      if (opts.passwordCount > 99) {
-        throw new Error(t("maxCountError", lang));
-      }
-      return await generatePassword(opts);
+  const {
+    data = [],
+    isLoading,
+    revalidate,
+  } = useCachedPromise((opts: PasswordOptions) => generatePassword(opts), [options], {
+    keepPreviousData: true,
+    onError: (err) => {
+      void showToast(Toast.Style.Failure, err instanceof Error ? err.message : String(err));
     },
-    [options],
-    {
-      initialData: [],
-      keepPreviousData: true,
-      onError: (error) => {
-        showToast(Toast.Style.Failure, error instanceof Error ? error.message : String(error));
-      },
-    }
-  );
+  });
 
   const getSourceIcon = (type: WordListType) => {
     switch (type) {
@@ -97,22 +86,19 @@ export default function Command(props: LaunchProps<{ arguments: PasswordArgument
     }
   };
 
-  const getStrengthColor = (strength: number): Color => {
-    if (strength >= 4) return Color.Green;
-    if (strength >= 3) return Color.Orange;
-    return Color.Red;
-  };
+  const getStrengthColor = (strength: number): Color =>
+    strength >= 4 ? Color.Green : strength >= 3 ? Color.Orange : Color.Red;
 
-  const getStrengthLabel = (entropy: number): string => {
+  const getStrengthLabel = (entropy: number) => {
     if (entropy >= 60) return t("strengthVeryStrong", lang);
     if (entropy >= 40) return t("strengthStrong", lang);
     if (entropy >= 25) return t("strengthModerate", lang);
     return t("strengthWeak", lang);
   };
 
-  const handleCopy = async (content: string, type: "password" | "plaintext") => {
-    await Clipboard.copy(content);
-    await showToast(Toast.Style.Success, t(type === "password" ? "passwordCopied" : "plaintextCopied", lang));
+  const handleCopy = async (text: string, type: "password" | "plaintext") => {
+    await Clipboard.copy(text);
+    void showToast(Toast.Style.Success, t(type === "password" ? "passwordCopied" : "plaintextCopied", lang));
   };
 
   const wordLists: { title: string; value: WordListType }[] = [
@@ -135,18 +121,13 @@ export default function Command(props: LaunchProps<{ arguments: PasswordArgument
           <List.Dropdown
             tooltip={t("wordListDropdownTitle", lang)}
             value={selectedWordList}
-            onChange={(newValue) => setSelectedWordList(newValue as WordListType)}
+            onChange={(v) => setSelectedWordList(v as WordListType)}
           >
             {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (wordLists.map((item) => (
-                <List.Dropdown.Item
-                  key={item.value}
-                  title={item.title}
-                  value={item.value}
-                  icon={getSourceIcon(item.value)}
-                />
-              )) as any)
+              wordLists.map((w) => (
+                <List.Dropdown.Item key={w.value} title={w.title} value={w.value} icon={getSourceIcon(w.value)} />
+              )) as any
             }
           </List.Dropdown>
         ) as any
@@ -155,56 +136,69 @@ export default function Command(props: LaunchProps<{ arguments: PasswordArgument
       {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (
-          <List.Section title={t("results", lang)} subtitle={t("itemsCount", lang, { count: data?.length || 0 })}>
+          <List.Section title={t("results", lang)} subtitle={t("itemsCount", lang, { count: data.length })}>
             {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (data?.map((p, index) => {
-                const wordsArr = p.plaintext.split(" ");
-                const strengthColor = getStrengthColor(p.strength);
-                const strengthText = getStrengthLabel(p.entropy);
+              data.map((p, index) => {
+                const words = p.plaintext.split(" ");
+                const color = getStrengthColor(p.strength);
+                const label = getStrengthLabel(p.entropy);
 
                 return (
                   <List.Item
-                    key={index}
-                    icon={{ source: getSourceIcon(selectedWordList), tintColor: strengthColor }}
+                    key={`${p.password}-${index}`}
                     title={p.password}
+                    icon={{ source: getSourceIcon(selectedWordList), tintColor: color }}
+                    keywords={[...words, p.plaintext]}
                     accessories={[
                       {
-                        text: { value: `${Math.round(p.entropy)} bits`, color: strengthColor },
-                        icon: { source: p.strength >= 3 ? Icon.CheckCircle : Icon.Circle, tintColor: strengthColor },
-                        tooltip: strengthText,
+                        text: { value: `${Math.round(p.entropy)} bits`, color },
+                        icon: {
+                          source: p.strength >= 3 ? Icon.CheckCircle : Icon.Circle,
+                          tintColor: color,
+                        },
+                        tooltip: label,
                       },
                     ]}
-                    keywords={[...wordsArr, p.plaintext]}
                     detail={
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       (
                         <List.Item.Detail
-                          markdown={`### ${t("componentsLabel", lang)}\n${wordsArr
+                          markdown={`### ${t("componentsLabel", lang)}\n${words
                             .map((w: string) => `\`${w}\``)
-                            .join("  &bull;  ")}`}
+                            .join("  •  ")}`}
                           metadata={
                             // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             (
-                              <List.Item.Detail.Metadata>
-                                <List.Item.Detail.Metadata.TagList title={t("strengthLabel", lang)} children={(<List.Item.Detail.Metadata.TagList.Item text={strengthText} color={strengthColor} />) as any} />
-                                <List.Item.Detail.Metadata.Separator />
-                                <List.Item.Detail.Metadata.Label
-                                  title={t("wordCount", lang)}
-                                  text={String(wordsArr.length)}
-                                  icon={Icon.Text}
-                                />
-                                <List.Item.Detail.Metadata.Label
-                                  title={t("totalLength", lang)}
-                                  text={String(p.password.length)}
-                                  icon={Icon.Hashtag}
-                                />
-                                <List.Item.Detail.Metadata.Label
-                                  title={t("entropy", lang)}
-                                  text={`${Math.round(p.entropy)} bits`}
-                                  icon={Icon.Livestream}
-                                />
-                              </List.Item.Detail.Metadata>
+                              <List.Item.Detail.Metadata
+                                children={
+                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                  (
+                                    <>
+                                      <List.Item.Detail.Metadata.TagList
+                                        title={t("strengthLabel", lang)}
+                                        children={
+                                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                          (<List.Item.Detail.Metadata.TagList.Item text={label} color={color} />) as any
+                                        }
+                                      />
+                                      <List.Item.Detail.Metadata.Separator />
+                                      <List.Item.Detail.Metadata.Label
+                                        title={t("wordCount", lang)}
+                                        text={String(words.length)}
+                                      />
+                                      <List.Item.Detail.Metadata.Label
+                                        title={t("totalLength", lang)}
+                                        text={String(p.password.length)}
+                                      />
+                                      <List.Item.Detail.Metadata.Label
+                                        title={t("entropy", lang)}
+                                        text={`${Math.round(p.entropy)} bits`}
+                                      />
+                                    </>
+                                  ) as any
+                                }
+                              />
                             ) as any
                           }
                         />
@@ -213,81 +207,71 @@ export default function Command(props: LaunchProps<{ arguments: PasswordArgument
                     actions={
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       (
-                        <ActionPanel>
-                          {
+                        <ActionPanel
+                          children={
                             // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             (
-                              <ActionPanel.Section title={t("copyActions", lang)}>
-                                {
-                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                  (
-                                    <Action.CopyToClipboard
-                                      title={t("copyPassword", lang)}
-                                      content={p.password}
-                                      onCopy={() => {
-                                        handleCopy(p.password, "password");
-                                      }}
-                                    />
-                                  ) as any
-                                }
-                                {
-                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                  (
-                                    <Action.CopyToClipboard
-                                      title={t("copyPlaintext", lang)}
-                                      content={p.plaintext}
-                                      shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
-                                      onCopy={() => {
-                                        handleCopy(p.plaintext, "plaintext");
-                                      }}
-                                    />
-                                  ) as any
-                                }
-                              </ActionPanel.Section>
+                              <>
+                                <ActionPanel.Section
+                                  title={t("copyActions", lang)}
+                                  children={
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                    (
+                                      <>
+                                        <Action.CopyToClipboard
+                                          title={t("copyPassword", lang)}
+                                          content={p.password}
+                                          onCopy={() => handleCopy(p.password, "password")}
+                                        />
+                                        <Action.CopyToClipboard
+                                          title={t("copyPlaintext", lang)}
+                                          content={p.plaintext}
+                                          shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+                                          onCopy={() => handleCopy(p.plaintext, "plaintext")}
+                                        />
+                                      </>
+                                    ) as any
+                                  }
+                                />
+
+                                <ActionPanel.Section
+                                  title={t("generationActions", lang)}
+                                  children={
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                    (
+                                      <Action
+                                        title={t("regenerate", lang)}
+                                        icon={Icon.RotateAntiClockwise}
+                                        shortcut={{ modifiers: ["cmd"], key: "r" }}
+                                        onAction={revalidate}
+                                      />
+                                    ) as any
+                                  }
+                                />
+
+                                <ActionPanel.Section
+                                  title={t("systemActions", lang)}
+                                  children={
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                    (
+                                      <Action
+                                        title={t("openPreferences", lang)}
+                                        icon={Icon.Gear}
+                                        shortcut={{ modifiers: ["cmd", "shift"], key: "," }}
+                                        onAction={openCommandPreferences}
+                                      />
+                                    ) as any
+                                  }
+                                />
+                              </>
                             ) as any
                           }
-                          {
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            (
-                              <ActionPanel.Section title={t("generationActions", lang)}>
-                                {
-                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                  (
-                                    <Action
-                                      title={t("regenerate", lang)}
-                                      icon={Icon.RotateAntiClockwise}
-                                      onAction={revalidate}
-                                      shortcut={{ modifiers: ["cmd"], key: "r" }}
-                                    />
-                                  ) as any
-                                }
-                              </ActionPanel.Section>
-                            ) as any
-                          }
-                          {
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            (
-                              <ActionPanel.Section title={t("systemActions", lang)}>
-                                {
-                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                  (
-                                    <Action
-                                      title={t("openPreferences", lang)}
-                                      icon={Icon.Gear}
-                                      onAction={openCommandPreferences}
-                                      shortcut={{ modifiers: ["cmd", "shift"], key: "," }}
-                                    />
-                                  ) as any
-                                }
-                              </ActionPanel.Section>
-                            ) as any
-                          }
-                        </ActionPanel>
+                        />
                       ) as any
                     }
                   />
                 );
-              }) as any)
+              }) as any
             }
           </List.Section>
         ) as any
