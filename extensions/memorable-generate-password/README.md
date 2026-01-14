@@ -50,9 +50,11 @@ Choose from 6 curated word sources to match your preferences:
 
 ### From Raycast Store
 
-Search for "Memorable Password Generator" in the Raycast Store and install.
+1. Open Raycast
+2. Search for "Memorable Password Generator"
+3. Click Install
 
-### Manual Installation
+### Manual Installation (Development)
 
 ```bash
 git clone https://github.com/gandli/extensions.git
