@@ -2,6 +2,8 @@ import fs from "fs";
 import { resolve } from "path";
 import { environment } from "@raycast/api";
 
+import { pinyin } from "pinyin-pro";
+
 // Define the leet speak rules
 const leetRules: Record<string, string[]> = {
   a: ["a", "A", "4", "@"],
@@ -130,6 +132,11 @@ const applyCasing = (word: string, mode: CasingMode): string => {
   }
 };
 
+const convertToPinyin = (text: string): string => {
+  // Convert Chinese characters to Pinyin without tone and without spaces
+  return pinyin(text, { toneType: "none", type: "array" }).join("");
+};
+
 const generatePassword = async (options: PasswordOptions): Promise<PasswordData[]> => {
   const words = loadWords(options.wordListType, options.customPath);
   const passwordData: PasswordData[] = [];
@@ -144,7 +151,13 @@ const generatePassword = async (options: PasswordOptions): Promise<PasswordData[
       const selectedWords = Array.from({ length: options.wordCount }, () => getRandomItem(words));
       plaintext = selectedWords.join(" ");
 
-      const casedWords = selectedWords.map((w) => applyCasing(w, options.casing));
+      // Convert selected words to pinyin if they are Chinese
+      const processWord = (w: string) => {
+        const isChinese = /[\u4e00-\u9fa5]/.test(w);
+        return isChinese ? convertToPinyin(w) : w;
+      };
+
+      const casedWords = selectedWords.map((w) => applyCasing(processWord(w), options.casing));
 
       let intermediate = casedWords.join(options.separator);
 

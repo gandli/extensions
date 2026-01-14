@@ -35,6 +35,22 @@ export const translations = {
     strengthModerate: "Moderate",
     strengthWeak: "Weak",
     maxCountError: "Count cannot be greater than 99",
+    wordListDropdownTitle: "Word List",
+    allWordLists: "All Word Lists",
+    copyActions: "Password Actions",
+    generationActions: "Generation",
+    systemActions: "System",
+    emptyTitle: "No Passwords Found",
+    emptyDescription: "Try adjusting your word count or search query.",
+    oxford: "Oxford 3000",
+    idioms: "Chinese Idioms",
+    poetry: "Chinese Poetry",
+    tech: "Technology",
+    nature: "Nature",
+    custom: "Custom File",
+    strengthLabel: "Strength",
+    componentsLabel: "Components",
+    generatedAt: "Generated at",
   },
   zh: {
     searchPlaceholder: "通过密码或原始词汇过滤...",
@@ -44,9 +60,9 @@ export const translations = {
     regenerate: "重新生成",
     openPreferences: "打开扩展设置",
     copyPassword: "复制密码",
-    copyPlaintext: "复制原始词汇",
-    passwordCopied: "密码已复制到剪贴板",
-    plaintextCopied: "原始词汇已复制到剪贴板",
+    copyPlaintext: "复制原始词汇序列",
+    passwordCopied: "密码已复制",
+    plaintextCopied: "序列已复制",
     generatedPassword: "生成的密码",
     components: "组成部分",
     transformationRules: "转换规则",
@@ -68,12 +84,28 @@ export const translations = {
     strengthModerate: "中等强度",
     strengthWeak: "弱强度",
     maxCountError: "数量不能超过 99",
+    wordListDropdownTitle: "切换词库",
+    allWordLists: "全部词库",
+    copyActions: "密码操作",
+    generationActions: "生成控制",
+    systemActions: "系统设置",
+    emptyTitle: "未找到密码",
+    emptyDescription: "请尝试调整单词数量或搜索关键词",
+    oxford: "牛津 3000",
+    idioms: "中文成语",
+    poetry: "精选诗词",
+    tech: "技术术语",
+    nature: "自然地理",
+    custom: "自定义文件",
+    strengthLabel: "安全强度",
+    componentsLabel: "组成单词",
+    generatedAt: "生成于",
   },
 };
 
 export function getLanguage(preferencesLanguage: string): Language {
   if (preferencesLanguage === "auto") {
-    return environment.language === "zh" ? "zh" : "en";
+    return (environment as any).language === "zh" ? "zh" : "en";
   }
   return preferencesLanguage as Language;
 }
