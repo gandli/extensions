@@ -46,22 +46,6 @@ Choose from 6 curated word sources to match your preferences:
 - **Color Coding**: Instant visual feedback on password strength
 - **Detailed Metadata**: Word count, total length, and security metrics
 
-## 🚀 Installation
-
-### From Raycast Store
-
-1. Open Raycast
-2. Search for "Memorable Password Generator"
-3. Click Install
-
-### Manual Installation (Development)
-
-```bash
-git clone https://github.com/gandli/extensions.git
-cd extensions/extensions/memorable-generate-password
-npm install && npm run dev
-```
-
 ## 📖 Usage
 
 1. **Launch**: Open Raycast and type "Memorable Password Generator"
@@ -120,25 +104,6 @@ Strong passwords resist brute-force attacks through:
 
 Word lists are cached in memory for optimal performance, ensuring fast password generation even with large vocabularies.
 
-## 🛠️ Development
-
-```bash
-# Install dependencies
-npm install
-
-# Run in development mode
-npm run dev
-
-# Build for production
-npm run build
-
-# Run linter
-npm run lint
-
-# Fix linting issues
-npm run fix-lint
-```
-
 ## 🤝 Contributing
 
 Contributions are welcome! Feel free to:
@@ -150,7 +115,7 @@ Contributions are welcome! Feel free to:
 
 Visit the [GitHub Repository](https://github.com/gandli/extensions) to get started.
 
-## � Changelog
+## 📝 Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md) for version history and updates.
 
