@@ -20,7 +20,6 @@ thunder
 uranium
 valley
 waterfall
-xerox
 yellowstone
 zebra
 aurora
