@@ -106,13 +106,25 @@ const evaluatePasswordStrength = (password: string): number => {
 };
 
 const calculateEntropy = (password: string): number => {
+  if (password.length === 0) return 0;
+
+  // Calculate actual charset size based on character types present
   let charsetSize = 0;
   if (/[a-z]/.test(password)) charsetSize += 26;
   if (/[A-Z]/.test(password)) charsetSize += 26;
   if (/\d/.test(password)) charsetSize += 10;
-  if (/[^a-zA-Z0-9]/.test(password)) charsetSize += 32;
+
+  // Count unique special characters actually used
+  const specialChars = password.match(/[^a-zA-Z0-9]/g);
+  if (specialChars) {
+    const uniqueSpecialChars = new Set(specialChars).size;
+    charsetSize += uniqueSpecialChars;
+  }
+
   if (charsetSize === 0) return 0;
-  return Math.round(password.length * Math.log2(charsetSize));
+
+  // Entropy = length * log2(charset size)
+  return password.length * Math.log2(charsetSize);
 };
 
 const getRandomItem = <T>(array: T[]): T => array[Math.floor(Math.random() * array.length)];
