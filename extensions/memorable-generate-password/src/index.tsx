@@ -13,7 +13,7 @@ import {
   Color,
 } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
-import generatePassword, { PasswordOptions, CasingMode, WordListType } from "./generatePassword";
+import generatePassword, { PasswordOptions, WordListType } from "./generatePassword";
 import { en } from "./translations";
 
 interface PasswordArguments {
@@ -152,9 +152,7 @@ export default function Command(props: LaunchProps<{ arguments: PasswordArgument
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       (
                         <List.Item.Detail
-                          markdown={`### ${en.componentsLabel}\n${words
-                            .map((w: string) => `\`${w}\``)
-                            .join("  •  ")}`}
+                          markdown={`### ${en.componentsLabel}\n${words.map((w: string) => `\`${w}\``).join("  •  ")}`}
                           metadata={
                             // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             (
