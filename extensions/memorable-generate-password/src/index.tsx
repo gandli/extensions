@@ -23,18 +23,7 @@ interface PasswordArguments {
 }
 
 export default function Command(props: LaunchProps<{ arguments: PasswordArguments }>) {
-  const preferences = getPreferenceValues<{
-    defaultWordCount: string;
-    defaultPasswordCount: string;
-    separator: string;
-    casing: CasingMode;
-    wordList: WordListType;
-    customWordListPath?: string;
-    useLeetSpeak: boolean;
-    language: string;
-    prefix?: string;
-    suffix?: string;
-  }>();
+  const preferences = getPreferenceValues<Preferences>();
 
   const [selectedWordList, setSelectedWordList] = useState<WordListType>(preferences.wordList);
   const lang = getLanguage(preferences.language);
