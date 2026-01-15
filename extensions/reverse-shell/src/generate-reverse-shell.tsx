@@ -578,8 +578,8 @@ function ShowAllCommands({ ip, port }: FormValues) {
     osFilter === "all"
       ? allCommands
       : allCommands.filter((cmd) =>
-          cmd.os.includes(osFilter as "linux" | "windows" | "mac"),
-        );
+        cmd.os.includes(osFilter as "linux" | "windows" | "mac"),
+      );
 
   // Sorting
   const sortedCommands = [...filteredCommands].sort((a, b) => {
@@ -659,7 +659,7 @@ ${cmd.listener ? `## Listener Command\n\n\`\`\`bash\n${cmd.listener}\n\`\`\`` : 
                   <Action.CopyToClipboard
                     title="Copy Command"
                     content={cmd.command}
-                    shortcut={{ macOS: { modifiers: ["cmd"], key: "c" } }}
+                    shortcut={{ modifiers: ["cmd"], key: "c" }}
                     onCopy={() => {
                       showToast({
                         style: Toast.Style.Success,
