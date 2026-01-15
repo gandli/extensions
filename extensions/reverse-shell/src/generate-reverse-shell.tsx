@@ -659,7 +659,7 @@ ${cmd.listener ? `## Listener Command\n\n\`\`\`bash\n${cmd.listener}\n\`\`\`` : 
                   <Action.CopyToClipboard
                     title="Copy Command"
                     content={cmd.command}
-                    shortcut={{ modifiers: ["cmd"], key: "c" }}
+                    shortcut={{ macOS: { modifiers: ["cmd"], key: "c" } }}
                     onCopy={() => {
                       showToast({
                         style: Toast.Style.Success,
@@ -749,14 +749,14 @@ ${cmd.listener ? `## Listener Command\n\n\`\`\`bash\n${cmd.listener}\n\`\`\`` : 
                       onAction={() => setSortBy("name")}
                     />
                     <Action
-                      title="Sort by Os"
+                      title="Sort by OS"
                       icon={Icon.ComputerChip}
                       shortcut={{ modifiers: ["cmd", "shift"], key: "3" }}
                       onAction={() => setSortBy("os")}
                     />
                   </ActionPanel.Section>
                   <Action
-                    title="Re-enter Ip/port"
+                    title="Re-enter IP/Port"
                     icon={Icon.ArrowClockwise}
                     shortcut={{ modifiers: ["cmd"], key: "r" }}
                     onAction={pop}
