@@ -659,7 +659,7 @@ ${cmd.listener ? `## Listener Command\n\n\`\`\`bash\n${cmd.listener}\n\`\`\`` : 
                   <Action.CopyToClipboard
                     title="Copy Command"
                     content={cmd.command}
-                    shortcut={{ modifiers: ["cmd"], key: "c" }}
+                    shortcut={{ macOS: { modifiers: ["cmd"], key: "c" } }}
                     onCopy={() => {
                       showToast({
                         style: Toast.Style.Success,
