@@ -77,28 +77,9 @@ A powerful Raycast extension for quickly generating various reverse shell comman
 - Windows (x64/x86)
 - macOS
 
-## 🔧 Installation
-
-### Install from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/reverse-shell.git
-cd reverse-shell
-
-# Install dependencies
-bun install
-
-# Development mode
-bun dev
-
-# Build extension
-bun run build
-```
-
 ### Install from Raycast Store
 
-_Coming soon..._
+search "reverse-shell-generator" in the Raycast Store
 
 ## 🎯 Usage
 
