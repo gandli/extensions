@@ -578,8 +578,8 @@ function ShowAllCommands({ ip, port }: FormValues) {
     osFilter === "all"
       ? allCommands
       : allCommands.filter((cmd) =>
-        cmd.os.includes(osFilter as "linux" | "windows" | "mac"),
-      );
+          cmd.os.includes(osFilter as "linux" | "windows" | "mac"),
+        );
 
   // Sorting
   const sortedCommands = [...filteredCommands].sort((a, b) => {
