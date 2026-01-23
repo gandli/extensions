@@ -47,7 +47,7 @@ type Input = {
    * This value should be chosen based on the user's input and can include markdown syntax.
    * Collections and Sets can't have a body.
    */
-  body?: string;
+  markdown?: string;
 
   /**
    * The URL of the bookmark, applicable when creating an object with type_key='bookmark'.
@@ -60,10 +60,10 @@ type Input = {
 /**
  * Create a new object in the specified space.
  * This function creates an object with the specified details in the specified space.
- * The object is created with the specified name, icon, description, body.
+ * The object is created with the specified name, icon, description, markdown.
  * When creating objects of type 'bookmark', ensure the source URL is provided. The icon, name, and description should not be manually set, as they will be automatically populated upon fetching the URL.
  */
-export default async function tool({ spaceId, type_key, name, icon, description, body, source }: Input) {
+export default async function tool({ spaceId, type_key, name, icon, description, markdown, source }: Input) {
   // TODO: implement properties key-value parsing
   const propertyEntries: PropertyLinkWithValue[] = [];
   if (description) {
@@ -83,7 +83,7 @@ export default async function tool({ spaceId, type_key, name, icon, description,
   const request: CreateObjectRequest = {
     name: name || "",
     icon: { format: IconFormat.Emoji, emoji: icon || "" },
-    body: body || "",
+    markdown: markdown || "",
     template_id: "", // not supported here
     type_key: type_key,
     properties: propertyEntries,
@@ -130,7 +130,7 @@ export const confirmation: Tool.Confirmation<Input> = async (input) => {
       },
       ...(input.icon !== undefined ? [{ name: "Icon", value: input.icon }] : []),
       ...(input.description !== undefined ? [{ name: "Description", value: input.description }] : []),
-      ...(input.body !== undefined ? [{ name: "Body", value: input.body }] : []),
+      ...(input.markdown !== undefined ? [{ name: "Body", value: input.markdown }] : []),
       ...(input.source !== undefined ? [{ name: "URL", value: input.source }] : []),
     ],
   };

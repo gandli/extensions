@@ -29,7 +29,7 @@ export interface CreateObjectFormValues {
   name?: string;
   icon?: string;
   description?: string;
-  body?: string;
+  markdown?: string;
   source?: string;
 
   /**
@@ -177,7 +177,7 @@ export function CreateObjectForm({ draftValues, enableDrafts }: CreateObjectForm
         const request: CreateObjectRequest = {
           name: values.name || "",
           icon: { format: IconFormat.Emoji, emoji: values.icon || "" },
-          body: values.body || "",
+          markdown: values.markdown || "",
           template_id: values.templateId || "",
           type_key: selectedTypeKey,
           properties: propertiesEntries,
@@ -236,7 +236,7 @@ export function CreateObjectForm({ draftValues, enableDrafts }: CreateObjectForm
       [itemProps.name.id]: itemProps.name.value,
       [itemProps.icon.id]: itemProps.icon.value,
       [itemProps.description.id]: itemProps.description.value,
-      [itemProps.body.id]: itemProps.body.value,
+      [itemProps.markdown.id]: itemProps.markdown.value,
       [itemProps.source.id]: itemProps.source.value,
     };
 
@@ -391,7 +391,7 @@ export function CreateObjectForm({ draftValues, enableDrafts }: CreateObjectForm
               />
               {!typeKeysForLists.includes(selectedTypeKey) && (
                 <Form.TextArea
-                  {...itemProps.body}
+                  {...itemProps.markdown}
                   title="Body"
                   placeholder="Add text in markdown"
                   info="Parses markdown to Anytype Blocks.
