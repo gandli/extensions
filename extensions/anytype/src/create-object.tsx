@@ -10,7 +10,7 @@ interface LaunchContext {
     name: string;
     icon: string;
     description: string;
-    body: string;
+    markdown: string;
     source: string;
   };
 }

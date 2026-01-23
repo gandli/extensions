@@ -20,7 +20,7 @@ export interface CreateObjectRequest {
   template_id: string;
   type_key: string;
   properties: PropertyLinkWithValue[];
-  body: string; // TODO: rename to markdown?
+  markdown: string;
 }
 
 export interface UpdateObjectRequest {
