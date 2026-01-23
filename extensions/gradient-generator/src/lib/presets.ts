@@ -1,3 +1,6 @@
+import { useLocalStorage } from '@raycast/utils';
+import { Gradient } from '../types';
+
 export interface GradientPreset {
   name: string;
   colors: string[];
@@ -82,10 +85,58 @@ export const defaultPresets: GradientPreset[] = [
   },
 ];
 
-// Function to get presets (can be extended later to include user presets)
-export const getPresets = (): GradientPreset[] => {
-  // TODO: In future updates, merge with user-defined presets from storage
-  return defaultPresets;
+export const usePresets = () => {
+  const { value: savedGradients, isLoading } = useLocalStorage<Gradient[]>('saved-gradients', []);
+
+  const allPresets = [...defaultPresets];
+
+  (savedGradients || []).forEach((g) => {
+    let name = g.label || (g.type === 'linear' ? `${g.type} (${g.angle ?? 90}°)` : g.type);
+
+    // Ensure unique name by appending suffix if needed
+    let uniqueName = name;
+    let counter = 1;
+    // Check against existing presets (both defaults and previously processed saved ones)
+    while (allPresets.some((p) => p.name === uniqueName)) {
+      uniqueName = `${name} (${counter})`;
+      counter++;
+    }
+
+    // If it collided with a default preset but didn't have (User), we might want to add (User) to be clear?
+    // But the loop above handles uniqueness.
+    // If "Sunset" exists, and user has "Sunset", it becomes "Sunset (1)".
+    // Maybe "Sunset (User)" is better than "Sunset (1)".
+
+    // Let's refine the logic slightly:
+    // If exact match with default, try appending (User).
+    // Then checks for uniqueness.
+
+    if (defaultPresets.some(p => p.name === name)) {
+        uniqueName = `${name} (User)`;
+        // Re-check uniqueness for the new name
+        counter = 1;
+        const baseName = uniqueName;
+        while (allPresets.some((p) => p.name === uniqueName)) {
+            uniqueName = `${baseName} ${counter}`;
+            counter++;
+        }
+    } else {
+        // Just check normal collisions
+        counter = 1;
+        while (allPresets.some((p) => p.name === uniqueName)) {
+             uniqueName = `${name} (${counter})`;
+             counter++;
+        }
+    }
+
+    allPresets.push({
+      name: uniqueName,
+      colors: g.stops,
+      description: 'User saved gradient',
+    });
+  });
+
+  return { presets: allPresets, isLoading };
 };
 
 // Function to add a new preset (for future user customization)

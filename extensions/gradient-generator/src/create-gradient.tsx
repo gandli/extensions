@@ -12,7 +12,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import PreviewGradient from './gradient-preview';
 import { GradType, ValidationError } from './types';
 import { randomHex, validateGradient, isValidHex } from './lib/grad';
-import { getPresets } from './lib/presets';
+import { usePresets } from './lib/presets';
 
 export default function CreateGradient() {
   const { push } = useNavigation();
@@ -45,7 +45,7 @@ export default function CreateGradient() {
     setTouchedFields((prev) => new Set(prev).add(field));
   }, []);
 
-  const presets = getPresets();
+  const { presets, isLoading: isLoadingPresets } = usePresets();
 
   const setStop = (index: number, value: string) => {
     setStops((prev) => prev.map((c, i) => (i === index ? value : c)));
@@ -110,6 +110,7 @@ export default function CreateGradient() {
 
   return (
     <Form
+      isLoading={isLoadingPresets}
       actions={
         <ActionPanel>
           <Action.SubmitForm
