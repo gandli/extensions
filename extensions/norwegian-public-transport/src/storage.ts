@@ -86,7 +86,5 @@ export async function loadFavoriteLines(): Promise<QuayLineFavorites[] | undefin
 }
 
 export async function wipeStorage() {
-  Object.values(StorageKeys).forEach(async (key) => {
-    await LocalStorage.removeItem(key);
-  });
+  await Promise.all(Object.values(StorageKeys).map((key) => LocalStorage.removeItem(key)));
 }
