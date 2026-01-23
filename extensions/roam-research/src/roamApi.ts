@@ -93,48 +93,23 @@ export function appendToPageOrDailyNote(
   // if pageUid is not provided, it appends to today's daily note page
   existingPageUid?: string
 ) {
-  // TODO: don't really like this function since there is a lot of code copying between this and parseTemplate but okay for now. Refactor/Clean it up later
-  // console.log(
-  //   "appendToPageOrDailyNote called with: existingPageUid and pageTitlesToTagTopBlockWith: ",
-  //   existingPageUid,
-  //   pageTitlesToTagTopBlockWith
-  // );
-  if (template && template.startsWith("-")) {
-    const replaceDate = (s: string) => {
-      return s.replaceAll(/\{date:?([^}]+)?\}/gi, (a1: string, a2 = "HH:mm") => {
-        return dayjs(date).format(a2);
-      });
-    };
-    const replaceContent = (s: string) => {
-      return s.replaceAll(/\{content}/gi, content);
-    };
-
-    return roamApiSdk.batchActions(backendClient, {
-      action: "batch-actions",
-      actions: parseTemplate(replaceContent(replaceDate(template)), pageTitlesToTagTopBlockWith, existingPageUid),
+  const replaceDate = (s: string) => {
+    return s.replaceAll(/\{date:?([^}]+)?\}/gi, (a1: string, a2 = "HH:mm") => {
+      return dayjs(date).format(a2);
     });
-  } else {
-    const finalStr = content + tagPageTitlesStrSuffix(pageTitlesToTagTopBlockWith);
-    if (existingPageUid) {
-      return roamApiSdk.createBlock(backendClient, {
-        location: {
-          "parent-uid": existingPageUid,
-          order: "last",
-        },
-        block: {
-          string: finalStr,
-        },
-      });
-    } else {
-      return roamApiSdk.createBlock(backendClient, {
-        location: {
-          "page-title": { "daily-note-page": todayUid() },
-          order: "last",
-        },
-        block: {
-          string: finalStr,
-        },
-      });
-    }
-  }
+  };
+  const replaceContent = (s: string) => {
+    return s.replaceAll(/\{content}/gi, content);
+  };
+
+  const effectiveTemplate = template || "{content}";
+
+  return roamApiSdk.batchActions(backendClient, {
+    action: "batch-actions",
+    actions: parseTemplate(
+      replaceContent(replaceDate(effectiveTemplate)),
+      pageTitlesToTagTopBlockWith,
+      existingPageUid
+    ),
+  });
 }
