@@ -30,7 +30,6 @@ export function NewGraph() {
   }
   // console.log(graphsConfig, " = graphsConfig");
   return (
-    // TODO: add a description of how to get roam graph tokens for graphs
     <Form
       actions={
         <ActionPanel>
@@ -88,6 +87,14 @@ export function NewGraph() {
         </ActionPanel>
       }
     >
+      <Form.Description
+        title="Info"
+        text={`To get the graph token:
+1. Open your graph in Roam Research.
+2. Go to ... > Settings > "Graph" tab > "API Tokens".
+3. Create a new token with "Edit" access scope.
+4. Copy the token and paste it below.`}
+      />
       <Form.TextField
         id="nameField"
         title="Full Name"
