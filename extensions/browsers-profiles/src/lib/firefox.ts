@@ -5,14 +5,9 @@ import { join } from "path";
 
 import browsers from "./supported-browsers.json";
 import { sortProfiles, isBrowserEnabled } from "./utils";
-import { BrowserProfile } from "./types";
+import { BrowserProfile, BrowserProfiles } from "./types";
 
-type BrowserProfiles = {
-  name: string;
-  profiles: BrowserProfile[];
-};
-
-export const getFirefoxProfiles = (filter: string[]) => {
+export const getFirefoxProfiles = (filter: string[]): BrowserProfiles[] => {
   const profiles: BrowserProfiles[] = [];
 
   browsers.firefox

@@ -1,40 +1,29 @@
-import fs from "fs";
+import { promises as fsPromises, Dirent } from "fs";
 import os from "os";
 
 import browsers from "./supported-browsers.json";
 import { sortProfiles, isBrowserEnabled } from "./utils";
-import { BrowserProfile } from "./types";
+import { BrowserProfile, BrowserProfiles } from "./types";
 
-type BrowserProfiles = {
-  name: string;
-  profiles: BrowserProfile[];
-};
-
-export const getChromiumProfiles = (filter: string[]) => {
-  const profiles: BrowserProfiles[] = [];
-
-  browsers.chromium.forEach((browser) => {
+export const getChromiumProfiles = async (filter: string[]): Promise<BrowserProfiles[]> => {
+  const browserPromises = browsers.chromium.map(async (browser) => {
     if (!isBrowserEnabled(filter, browser)) {
       return null;
     }
 
     const path = `${os.homedir()}${browser.path}`;
-    const exists = fs.existsSync(path);
 
-    if (!exists) {
+    try {
+      await fsPromises.access(path);
+    } catch {
       return null;
     }
 
     const localStatePath = `${path}/Local State`;
-    const localStateExists = fs.existsSync(localStatePath);
-
-    if (!localStateExists) {
-      return null;
-    }
 
     let localState;
     try {
-      const localStateFile = fs.readFileSync(localStatePath, "utf-8");
+      const localStateFile = await fsPromises.readFile(localStatePath, "utf-8");
       localState = JSON.parse(localStateFile);
     } catch (error) {
       return null;
@@ -53,36 +42,55 @@ export const getChromiumProfiles = (filter: string[]) => {
       return null;
     }
 
-    const directories = fs.readdirSync(path);
+    let directories: Dirent[] = [];
+    try {
+      directories = await fsPromises.readdir(path, { withFileTypes: true });
+    } catch {
+      return null;
+    }
 
     const browserProfiles: BrowserProfile[] = [];
 
-    directories.forEach((directory: string) => {
-      const preferences = `${path}/${directory}/Preferences`;
-      const file = fs.readFileSync(preferences, "utf-8");
-      const profile = JSON.parse(file);
-      const profileName = profile.profile.name;
-      const profileLabel = infoCacheData[directory]?.name || profileName;
+    const profilePromises = directories.map(async (dirent) => {
+      if (!dirent.isDirectory()) {
+        return;
+      }
+      const directory = dirent.name;
 
-      browserProfiles.push({
-        type: browser.type,
-        browser: browser.title,
-        app: browser.app,
-        path: directory,
-        name: profileName,
-        uid: directory,
-        label: profileLabel,
-        icon: browser.icon,
-      });
+      const preferences = `${path}/${directory}/Preferences`;
+      try {
+        const file = await fsPromises.readFile(preferences, "utf-8");
+        const profile = JSON.parse(file);
+        const profileName = profile.profile.name;
+        const profileLabel = infoCacheData[directory]?.name || profileName;
+
+        browserProfiles.push({
+          type: browser.type,
+          browser: browser.title,
+          app: browser.app,
+          path: directory,
+          name: profileName,
+          uid: directory,
+          label: profileLabel,
+          icon: browser.icon,
+        });
+      } catch (error) {
+        // Ignore files that are not profiles or cannot be read
+      }
     });
+
+    await Promise.all(profilePromises);
 
     sortProfiles(browserProfiles);
 
-    profiles.push({
+    return {
       name: browser.title,
       profiles: browserProfiles,
-    });
+    };
   });
 
-  return profiles;
+  const results = await Promise.all(browserPromises);
+
+  // Filter out null results (disabled browsers or errors)
+  return results.filter((p): p is BrowserProfiles => p !== null);
 };
