@@ -1,3 +1,4 @@
+import { Action, ActionPanel, Detail, useNavigation } from "@raycast/api";
 import { createContext, useContext } from "react";
 import { Generation } from "../types";
 import { useGenerationContext } from "./GenerationContext";
@@ -18,8 +19,20 @@ export function SelectedGenerationContextProvider({
 }: GenerationContextType & { children: React.ReactNode }) {
   const { generations } = useGenerationContext();
   const selectedGeneration = generations.find((gen) => gen.guid === selectedId);
+  const { pop } = useNavigation();
 
-  if (!selectedGeneration) return null; // todo: error handling
+  if (!selectedGeneration) {
+    return (
+      <Detail
+        markdown="## Generation not found"
+        actions={
+          <ActionPanel>
+            <Action title="Go Back" onAction={pop} />
+          </ActionPanel>
+        }
+      />
+    );
+  }
   return (
     <SelectedContext.Provider
       value={{
