@@ -65,12 +65,12 @@ async function createNoteWithConfirmation(vaultPath: string, content: string, na
         icon: Icon.ExclamationMark,
       })
     ) {
-      Vault.writeMarkdown(fullPath, name, content, directoryCreationErrorToast, fileWriteErrorToast);
+      await Vault.writeMarkdown(fullPath, name, content, directoryCreationErrorToast, fileWriteErrorToast);
       return true;
     }
     return false;
   } else {
-    Vault.writeMarkdown(fullPath, name, content, directoryCreationErrorToast, fileWriteErrorToast);
+    await Vault.writeMarkdown(fullPath, name, content, directoryCreationErrorToast, fileWriteErrorToast);
     return true;
   }
 }
