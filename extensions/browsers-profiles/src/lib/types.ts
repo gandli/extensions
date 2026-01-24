@@ -16,3 +16,8 @@ export type Browser = {
   icon: string;
   title: string;
 };
+
+export type BrowserProfiles = {
+  name: string;
+  profiles: BrowserProfile[];
+};
