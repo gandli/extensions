@@ -1,4 +1,4 @@
-import { Logger } from "@/api/logger/logger.service";
+import { Logger } from "../../api/logger/logger.service";
 import { showToast, Toast } from "@raycast/api";
 
 import fs from "fs";
@@ -36,7 +36,7 @@ export function createProperties(tags: string[]): string {
 }
 
 /** Writes a text to a markdown file at filePath with a given fileName. */
-export function writeMarkdown(
+export async function writeMarkdown(
   filePath: string,
   fileName: string,
   text: string,
@@ -45,7 +45,7 @@ export function writeMarkdown(
 ) {
   // First try creating the folder structure
   try {
-    fs.mkdirSync(filePath, { recursive: true });
+    await fs.promises.mkdir(filePath, { recursive: true });
   } catch {
     logger.warning("Failed to create directory structure");
     onDirectoryCreationFailed?.(filePath);
@@ -54,7 +54,7 @@ export function writeMarkdown(
 
   // Then try writing the markdown file
   try {
-    fs.writeFileSync(path.join(filePath, fileName + ".md"), text);
+    await fs.promises.writeFile(path.join(filePath, fileName + ".md"), text);
   } catch {
     logger.warning("Failed to write file");
     onFileWriteFailed?.(filePath, fileName);

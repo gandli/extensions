@@ -32,14 +32,14 @@ export const Vault = {
     return getNoteFileContent(path, filter);
   },
 
-  writeMarkdown(
+  async writeMarkdown(
     path: string,
     name: string,
     text: string,
     onDirectoryCreationFailed?: (filePath: string) => void,
     onFileWriteFailed?: (filePath: string, fileName: string) => void
   ) {
-    writeMarkdown(path, name, text, onDirectoryCreationFailed, onFileWriteFailed);
+    await writeMarkdown(path, name, text, onDirectoryCreationFailed, onFileWriteFailed);
   },
 
   readCommunityPlugins(path: string) {

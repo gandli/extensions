@@ -5,7 +5,15 @@ import path from "path";
 import os from "os";
 import { showToast } from "@raycast/api";
 
-vi.mock("@raycast/api");
+vi.mock("@raycast/api", () => ({
+  showToast: vi.fn(),
+  Toast: {
+    Style: {
+      Success: "success",
+      Failure: "failure",
+    },
+  },
+}));
 
 describe("notes", () => {
   let tempDir: string;
@@ -97,11 +105,11 @@ describe("notes", () => {
   });
 
   describe("writeMarkdown", () => {
-    it("should create file in existing directory", () => {
+    it("should create file in existing directory", async () => {
       const dirPath = path.join(tempDir, "existing");
       fs.mkdirSync(dirPath);
 
-      writeMarkdown(dirPath, "test", "# Test Content");
+      await writeMarkdown(dirPath, "test", "# Test Content");
 
       const filePath = path.join(dirPath, "test.md");
       expect(fs.existsSync(filePath)).toBe(true);
@@ -110,10 +118,10 @@ describe("notes", () => {
       expect(showToast).toHaveBeenCalledWith({ title: "Note created", style: "success" });
     });
 
-    it("should create directory if it doesn't exist", () => {
+    it("should create directory if it doesn't exist", async () => {
       const dirPath = path.join(tempDir, "new", "nested", "folder");
 
-      writeMarkdown(dirPath, "note", "Content");
+      await writeMarkdown(dirPath, "note", "Content");
 
       const filePath = path.join(dirPath, "note.md");
       expect(fs.existsSync(filePath)).toBe(true);
@@ -121,17 +129,17 @@ describe("notes", () => {
       expect(content).toBe("Content");
     });
 
-    it("should call onDirectoryCreationFailed callback on directory creation failure", () => {
+    it("should call onDirectoryCreationFailed callback on directory creation failure", async () => {
       const invalidPath = "\0invalid";
       const callback = vi.fn();
 
-      writeMarkdown(invalidPath, "test", "content", callback);
+      await writeMarkdown(invalidPath, "test", "content", callback);
 
       expect(callback).toHaveBeenCalledWith(invalidPath);
       expect(showToast).not.toHaveBeenCalled();
     });
 
-    it("should call onFileWriteFailed callback on file write failure", () => {
+    it("should call onFileWriteFailed callback on file write failure", async () => {
       // Create a directory where the file should be (will cause write failure)
       const dirPath = path.join(tempDir, "test-dir");
       fs.mkdirSync(dirPath);
@@ -139,26 +147,26 @@ describe("notes", () => {
 
       const callback = vi.fn();
 
-      writeMarkdown(dirPath, "test", "content", undefined, callback);
+      await writeMarkdown(dirPath, "test", "content", undefined, callback);
 
       expect(callback).toHaveBeenCalledWith(dirPath, "test");
       expect(showToast).not.toHaveBeenCalled();
     });
 
-    it("should overwrite existing file", () => {
+    it("should overwrite existing file", async () => {
       const dirPath = path.join(tempDir, "overwrite");
       fs.mkdirSync(dirPath);
       const filePath = path.join(dirPath, "test.md");
       fs.writeFileSync(filePath, "Old content");
 
-      writeMarkdown(dirPath, "test", "New content");
+      await writeMarkdown(dirPath, "test", "New content");
 
       const content = fs.readFileSync(filePath, "utf-8");
       expect(content).toBe("New content");
     });
 
-    it("should handle empty content", () => {
-      writeMarkdown(tempDir, "empty", "");
+    it("should handle empty content", async () => {
+      await writeMarkdown(tempDir, "empty", "");
 
       const filePath = path.join(tempDir, "empty.md");
       expect(fs.existsSync(filePath)).toBe(true);
@@ -166,10 +174,10 @@ describe("notes", () => {
       expect(content).toBe("");
     });
 
-    it("should handle content with YAML frontmatter", () => {
+    it("should handle content with YAML frontmatter", async () => {
       const content = '---\ntags: ["test"]\n---\n# Title';
 
-      writeMarkdown(tempDir, "with-frontmatter", content);
+      await writeMarkdown(tempDir, "with-frontmatter", content);
 
       const filePath = path.join(tempDir, "with-frontmatter.md");
       const readContent = fs.readFileSync(filePath, "utf-8");
@@ -293,12 +301,12 @@ describe("notes", () => {
   });
 
   describe("integration tests", () => {
-    it("should create note with properties and then delete it", () => {
+    it("should create note with properties and then delete it", async () => {
       const tags = ["test", "integration"];
       const properties = createProperties(tags);
       const content = properties + "\n# Integration Test\n\nSome content.";
 
-      writeMarkdown(tempDir, "integration", content);
+      await writeMarkdown(tempDir, "integration", content);
 
       const notePath = path.join(tempDir, "integration.md");
       expect(fs.existsSync(notePath)).toBe(true);
@@ -315,8 +323,8 @@ describe("notes", () => {
       expect(fs.existsSync(notePath)).toBe(false);
     });
 
-    it("should create note and append text multiple times", () => {
-      writeMarkdown(tempDir, "append-test", "Initial content");
+    it("should create note and append text multiple times", async () => {
+      await writeMarkdown(tempDir, "append-test", "Initial content");
 
       const notePath = path.join(tempDir, "append-test.md");
       appendText(notePath, "First append");
