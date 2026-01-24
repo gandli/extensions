@@ -34,8 +34,8 @@ describe("bookmarks", () => {
   });
 
   describe("getBookmarksJson", () => {
-    it("should return the bookmarks JSON object", () => {
-      const bookmarks = getBookmarksJson(tempVault.path);
+    it("should return the bookmarks JSON object", async () => {
+      const bookmarks = await getBookmarksJson(tempVault.path);
 
       expect(bookmarks).toBeDefined();
       expect(bookmarks?.items).toHaveLength(2);
@@ -43,7 +43,7 @@ describe("bookmarks", () => {
       expect(bookmarks?.items[1].type).toBe("group");
     });
 
-    it("should return undefined when bookmarks.json doesn't exist", () => {
+    it("should return undefined when bookmarks.json doesn't exist", async () => {
       // Create a vault without bookmarks
       cleanup();
       const result = createTempVault({ withBookmarks: false });
@@ -51,35 +51,35 @@ describe("bookmarks", () => {
       cleanup = result.cleanup;
       paths = result.paths;
 
-      const bookmarks = getBookmarksJson(tempVault.path);
+      const bookmarks = await getBookmarksJson(tempVault.path);
       expect(bookmarks).toBeUndefined();
     });
   });
 
   describe("getAllBookmarkFiles", () => {
-    it("should return all bookmarked files flattened", () => {
-      const bookmarkFiles = getAllBookmarkFiles(tempVault.path);
+    it("should return all bookmarked files flattened", async () => {
+      const bookmarkFiles = await getAllBookmarkFiles(tempVault.path);
 
       expect(bookmarkFiles).toHaveLength(2);
       expect(bookmarkFiles[0].path).toBe("note1.md");
       expect(bookmarkFiles[1].path).toBe("Folder1/note2.md");
     });
 
-    it("should return empty array when no bookmarks.json exists", () => {
+    it("should return empty array when no bookmarks.json exists", async () => {
       // Create a vault without bookmarks
       cleanup();
       const result = createTempVault({ withBookmarks: false });
       tempVault = result.vault;
       cleanup = result.cleanup;
 
-      const bookmarkFiles = getAllBookmarkFiles(tempVault.path);
+      const bookmarkFiles = await getAllBookmarkFiles(tempVault.path);
       expect(bookmarkFiles).toEqual([]);
     });
   });
 
   describe("getBookmarkedNotePaths", () => {
-    it("should return paths of all bookmarked notes", () => {
-      const notePaths = getBookmarkedNotePaths(tempVault.path);
+    it("should return paths of all bookmarked notes", async () => {
+      const notePaths = await getBookmarkedNotePaths(tempVault.path);
 
       expect(notePaths).toHaveLength(2);
       expect(notePaths).toContain("note1.md");
@@ -88,7 +88,7 @@ describe("bookmarks", () => {
   });
 
   describe("bookmarkNote", () => {
-    it("should add a new note to bookmarks", () => {
+    it("should add a new note to bookmarks", async () => {
       // Create a new note
       const newNotePath = path.join(tempVault.path, "new-note.md");
       fs.writeFileSync(newNotePath, "# New Note\nContent");
@@ -100,18 +100,18 @@ describe("bookmarks", () => {
         bookmarked: false,
       };
 
-      bookmarkNote(tempVault.path, newNote);
+      await bookmarkNote(tempVault.path, newNote);
 
       // Verify the note was added to bookmarks
-      const bookmarks = getBookmarksJson(tempVault.path);
-      const allFiles = getAllBookmarkFiles(tempVault.path);
+      const bookmarks = await getBookmarksJson(tempVault.path);
+      const allFiles = await getAllBookmarkFiles(tempVault.path);
 
       expect(allFiles).toHaveLength(3);
       expect(allFiles.some((file) => file.path === "new-note.md")).toBeTruthy();
       expect(bookmarks?.items).toHaveLength(3);
     });
 
-    it("should not add a note that's already bookmarked", () => {
+    it("should not add a note that's already bookmarked", async () => {
       const existingNote: Note = {
         path: paths.note1Path,
         title: "Note 1",
@@ -119,17 +119,17 @@ describe("bookmarks", () => {
         bookmarked: false,
       };
 
-      bookmarkNote(tempVault.path, existingNote);
+      await bookmarkNote(tempVault.path, existingNote);
 
       // Verify no duplicate was added
-      const bookmarks = getBookmarksJson(tempVault.path);
-      const allFiles = getAllBookmarkFiles(tempVault.path);
+      const bookmarks = await getBookmarksJson(tempVault.path);
+      const allFiles = await getAllBookmarkFiles(tempVault.path);
 
       expect(allFiles).toHaveLength(2);
       expect(bookmarks?.items).toHaveLength(2);
     });
 
-    it("should create bookmarks.json if it doesn't exist", () => {
+    it("should create bookmarks.json if it doesn't exist", async () => {
       // Create a vault without bookmarks
       cleanup();
       const result = createTempVault({ withBookmarks: false });
@@ -144,19 +144,19 @@ describe("bookmarks", () => {
         bookmarked: false,
       };
 
-      bookmarkNote(tempVault.path, newNote);
+      await bookmarkNote(tempVault.path, newNote);
 
       // Verify a new bookmarks.json was created with the note
       expect(fs.existsSync(path.join(tempVault.path, ".obsidian", "bookmarks.json"))).toBeTruthy();
 
-      const bookmarks = getBookmarksJson(tempVault.path);
+      const bookmarks = await getBookmarksJson(tempVault.path);
       expect(bookmarks?.items).toHaveLength(1);
       // expect(bookmarks?.items[0].path).toBe("note1.md");
     });
   });
 
   describe("unbookmarkNote", () => {
-    it("should remove a note from root level bookmarks", () => {
+    it("should remove a note from root level bookmarks", async () => {
       const note: Note = {
         path: paths.note1Path,
         title: "Note 1",
@@ -164,18 +164,18 @@ describe("bookmarks", () => {
         bookmarked: false,
       };
 
-      unbookmarkNote(tempVault.path, note);
+      await unbookmarkNote(tempVault.path, note);
 
       // Verify the note was removed
-      const bookmarks = getBookmarksJson(tempVault.path);
-      const allFiles = getAllBookmarkFiles(tempVault.path);
+      const bookmarks = await getBookmarksJson(tempVault.path);
+      const allFiles = await getAllBookmarkFiles(tempVault.path);
 
       expect(allFiles).toHaveLength(1);
       expect(allFiles[0].path).toBe("Folder1/note2.md");
       expect(bookmarks?.items[0].type).toBe("group");
     });
 
-    it("should remove a note from a group", () => {
+    it("should remove a note from a group", async () => {
       const note: Note = {
         path: paths.note2Path,
         title: "Note 2",
@@ -183,11 +183,11 @@ describe("bookmarks", () => {
         bookmarked: false,
       };
 
-      unbookmarkNote(tempVault.path, note);
+      await unbookmarkNote(tempVault.path, note);
 
       // Verify the note was removed from the group
-      const bookmarks = getBookmarksJson(tempVault.path);
-      const allFiles = getAllBookmarkFiles(tempVault.path);
+      const bookmarks = await getBookmarksJson(tempVault.path);
+      const allFiles = await getAllBookmarkFiles(tempVault.path);
 
       expect(allFiles).toHaveLength(1);
       expect(allFiles[0].path).toBe("note1.md");
@@ -195,7 +195,7 @@ describe("bookmarks", () => {
       // expect(bookmarks?.items[1].items).toHaveLength(0);
     });
 
-    it("should do nothing if the note is not bookmarked", () => {
+    it("should do nothing if the note is not bookmarked", async () => {
       const newNotePath = path.join(tempVault.path, "non-bookmarked.md");
       fs.writeFileSync(newNotePath, "# Non Bookmarked\nContent");
 
@@ -206,17 +206,17 @@ describe("bookmarks", () => {
         bookmarked: false,
       };
 
-      unbookmarkNote(tempVault.path, note);
+      await unbookmarkNote(tempVault.path, note);
 
       // Verify nothing changed
-      const bookmarks = getBookmarksJson(tempVault.path);
-      const allFiles = getAllBookmarkFiles(tempVault.path);
+      const bookmarks = await getBookmarksJson(tempVault.path);
+      const allFiles = await getAllBookmarkFiles(tempVault.path);
 
       expect(allFiles).toHaveLength(2);
       expect(bookmarks?.items).toHaveLength(2);
     });
 
-    it("should do nothing if bookmarks.json doesn't exist", () => {
+    it("should do nothing if bookmarks.json doesn't exist", async () => {
       // Create a vault without bookmarks
       cleanup();
       const result = createTempVault({ withBookmarks: false });
@@ -232,7 +232,7 @@ describe("bookmarks", () => {
       };
 
       // This should not throw an error
-      unbookmarkNote(tempVault.path, note);
+      await unbookmarkNote(tempVault.path, note);
 
       // Verify bookmarks.json still doesn't exist
       expect(fs.existsSync(path.join(tempVault.path, ".obsidian", "bookmarks.json"))).toBeFalsy();

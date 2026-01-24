@@ -112,7 +112,7 @@ export async function getNotes(
   excludedFolders: string[] = []
 ): Promise<Note[]> {
   const filePaths = await getMarkdownFilePaths(vaultPath, configFileName, excludedFolders);
-  const bookmarkedFilePaths = getBookmarkedNotePaths(vaultPath);
+  const bookmarkedFilePaths = await getBookmarkedNotePaths(vaultPath);
   const notes: Note[] = [];
 
   for (const filePath of filePaths) {

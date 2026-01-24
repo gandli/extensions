@@ -78,12 +78,12 @@ export const Vault = {
     return getNoteFileContent(path, filter);
   },
 
-  bookmarkNote(path: string, note: Note, configFileName: string) {
-    bookmarkNote(path, note, configFileName);
+  async bookmarkNote(path: string, note: Note, configFileName: string) {
+    await bookmarkNote(path, note, configFileName);
   },
 
-  unbookmarkNote(path: string, note: Note, configFileName: string) {
-    unbookmarkNote(path, note, configFileName);
+  async unbookmarkNote(path: string, note: Note, configFileName: string) {
+    await unbookmarkNote(path, note, configFileName);
   },
 
   deleteNote(note: Note) {

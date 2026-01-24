@@ -242,8 +242,8 @@ export function BookmarkNoteAction(props: { note: Note; vault: ObsidianVault; on
     <Action
       title="Bookmark Note"
       shortcut={{ modifiers: ["opt"], key: "p" }}
-      onAction={() => {
-        Vault.bookmarkNote(vault.path, note, configFileName);
+      onAction={async () => {
+        await Vault.bookmarkNote(vault.path, note, configFileName);
         onBookmark?.();
       }}
       icon={Icon.Bookmark}
@@ -259,8 +259,8 @@ export function UnbookmarkNoteAction(props: { note: Note; vault: ObsidianVault; 
     <Action
       title="Unbookmark Note"
       shortcut={{ modifiers: ["opt"], key: "p" }}
-      onAction={() => {
-        Vault.unbookmarkNote(vault.path, note, configFileName);
+      onAction={async () => {
+        await Vault.unbookmarkNote(vault.path, note, configFileName);
         onUnbookmark?.();
       }}
       icon={Icon.Bookmark}

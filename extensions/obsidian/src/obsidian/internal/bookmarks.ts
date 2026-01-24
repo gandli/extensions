@@ -32,44 +32,49 @@ function* flattenBookmarks(bookmarkEntries: BookmarkEntry[]): Generator<Bookmark
   }
 }
 
-export function getBookmarksJson(vaultPath: string): BookmarkJson | undefined {
+export async function getBookmarksJson(vaultPath: string): Promise<BookmarkJson | undefined> {
   const { configFileName } = getPreferenceValues();
   const bookmarksJsonPath = `${vaultPath}/${configFileName || ".obsidian"}/bookmarks.json`;
-  if (!fs.existsSync(bookmarksJsonPath)) {
-    logger.warning("No bookmarks JSON found");
-    return;
+
+  try {
+    const fileContent = await fs.promises.readFile(bookmarksJsonPath, "utf-8");
+    const bookmarkJson = JSON.parse(fileContent) as BookmarkJson;
+    logger.info(bookmarkJson);
+    return bookmarkJson;
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+      logger.warning("No bookmarks JSON found");
+      return;
+    }
+    throw err;
   }
-  const fileContent = fs.readFileSync(bookmarksJsonPath, "utf-8");
-  const bookmarkJson = JSON.parse(fileContent) as BookmarkJson;
-  logger.info(bookmarkJson);
-  return bookmarkJson;
 }
 
-function writeBookmarksJson(vaultPath: string, bookmarksJson: BookmarkJson, configFileName: string) {
+async function writeBookmarksJson(vaultPath: string, bookmarksJson: BookmarkJson, configFileName: string) {
   const bookmarksJsonPath = `${vaultPath}/${configFileName}/bookmarks.json`;
-  fs.writeFileSync(bookmarksJsonPath, JSON.stringify(bookmarksJson, null, 2));
+  await fs.promises.writeFile(bookmarksJsonPath, JSON.stringify(bookmarksJson, null, 2));
 }
 
-export function getAllBookmarkFiles(vaultPath: string): BookmarkFile[] {
-  const bookmarkJson = getBookmarksJson(vaultPath);
+export async function getAllBookmarkFiles(vaultPath: string): Promise<BookmarkFile[]> {
+  const bookmarkJson = await getBookmarksJson(vaultPath);
   if (!bookmarkJson) return [];
   return Array.from(flattenBookmarks(bookmarkJson.items));
 }
 
-export function getBookmarkedNotePaths(vaultPath: string): string[] {
-  const bookmarkFiles = getAllBookmarkFiles(vaultPath);
+export async function getBookmarkedNotePaths(vaultPath: string): Promise<string[]> {
+  const bookmarkFiles = await getAllBookmarkFiles(vaultPath);
   const notePaths = bookmarkFiles.map((note) => note.path);
   logger.info(notePaths);
   return notePaths;
 }
 
 /** Bookmark a note in a vault if it was not bookmarked yet */
-export function bookmarkNote(vaultPath: string, note: Note, configFileName: string = ".obsidian") {
-  const bookmarksJson = getBookmarksJson(vaultPath);
+export async function bookmarkNote(vaultPath: string, note: Note, configFileName: string = ".obsidian") {
+  const bookmarksJson = await getBookmarksJson(vaultPath);
   const relativeNotePath = path.relative(vaultPath, note.path);
 
   // Check if the note is already bookmarked
-  const bookmarkedFiles = getAllBookmarkFiles(vaultPath);
+  const bookmarkedFiles = await getAllBookmarkFiles(vaultPath);
   if (bookmarkedFiles.some((file) => file.path === relativeNotePath)) {
     logger.info(`Note ${note.title} is already bookmarked`);
     return;
@@ -87,19 +92,19 @@ export function bookmarkNote(vaultPath: string, note: Note, configFileName: stri
     const newBookmarksJson: BookmarkJson = {
       items: [bookmarkedNote],
     };
-    writeBookmarksJson(vaultPath, newBookmarksJson, configFileName);
+    await writeBookmarksJson(vaultPath, newBookmarksJson, configFileName);
     return;
   }
 
   // Add the note to the root level of bookmarks, preserving the existing structure
   bookmarksJson.items.push(bookmarkedNote);
-  writeBookmarksJson(vaultPath, bookmarksJson, configFileName);
+  await writeBookmarksJson(vaultPath, bookmarksJson, configFileName);
   logger.info(`Bookmarked note: ${note.title}`);
 }
 
 /** Unbookmark a note in a vault if it was bookmarked */
-export function unbookmarkNote(vaultPath: string, note: Note, configFileName: string = ".obsidian") {
-  const bookmarksJson = getBookmarksJson(vaultPath);
+export async function unbookmarkNote(vaultPath: string, note: Note, configFileName: string = ".obsidian") {
+  const bookmarksJson = await getBookmarksJson(vaultPath);
   if (!bookmarksJson) {
     logger.warning("No bookmarks JSON found, can't unbookmark note.");
     return;
@@ -131,7 +136,7 @@ export function unbookmarkNote(vaultPath: string, note: Note, configFileName: st
   bookmarkFound = removeBookmark(bookmarksJson.items);
 
   if (bookmarkFound) {
-    writeBookmarksJson(vaultPath, bookmarksJson, configFileName);
+    await writeBookmarksJson(vaultPath, bookmarksJson, configFileName);
     logger.info(`Removed bookmark for note: ${note.title}`);
   } else {
     logger.warning(`Note not found in bookmarks: ${note.title}`);
