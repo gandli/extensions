@@ -29,7 +29,7 @@ export function towerCliRequiredMessage(): string {
       `;
 }
 
-async function extractBookmarks(obj: ImportedTowerBookmark[], parents?: string): Promise<Bookmark[]> {
+export async function extractBookmarks(obj: ImportedTowerBookmark[], parents?: string): Promise<Bookmark[]> {
   const bookmarks: Bookmark[] = [];
 
   if (!obj || obj.length === 0) {
