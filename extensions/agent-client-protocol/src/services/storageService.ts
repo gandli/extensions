@@ -7,7 +7,7 @@
 
 import { LocalStorage } from "@raycast/api";
 import type { ConversationSession, SessionMessage, ProjectContext } from "@/types/extension";
-import { STORAGE_KEYS, getDefaultValue, STORAGE_VERSION, STORAGE_VERSION_KEY } from "@/utils/storageKeys";
+import { STORAGE_KEYS, getDefaultValue } from "@/utils/storageKeys";
 import { ErrorCode, type ExtensionError } from "@/types/extension";
 import { runMigrations, validateStorageIntegrity } from "@/utils/migrations";
 import { createLogger } from "@/utils/logging";
@@ -60,7 +60,6 @@ export class StorageService {
         });
       }
 
-      await this.checkStorageVersion();
       this.initialized = true;
     } catch (error) {
       throw this.createError(
@@ -513,25 +512,6 @@ export class StorageService {
     } catch (error) {
       logger.error("Failed to delete project contexts by session", { sessionId, error });
       // Don't throw - this is a cleanup operation and shouldn't prevent conversation deletion
-    }
-  }
-
-  /**
-   * Private: Check and handle storage version migrations
-   */
-  private async checkStorageVersion(): Promise<void> {
-    const storedVersion = await LocalStorage.getItem(STORAGE_VERSION_KEY);
-
-    if (!storedVersion) {
-      // First time setup
-      await LocalStorage.setItem(STORAGE_VERSION_KEY, STORAGE_VERSION);
-      return;
-    }
-
-    if (storedVersion !== STORAGE_VERSION) {
-      // TODO: Implement migration logic for different versions
-      logger.info("Storage migration needed", { from: storedVersion, to: STORAGE_VERSION });
-      await LocalStorage.setItem(STORAGE_VERSION_KEY, STORAGE_VERSION);
     }
   }
 

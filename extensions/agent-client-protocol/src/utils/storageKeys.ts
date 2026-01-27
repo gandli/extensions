@@ -111,7 +111,7 @@ export const DEFAULT_VALUES = {
 } as const;
 
 // Storage migration version tracking
-export const STORAGE_VERSION = "1.0.0";
+export const STORAGE_VERSION = "1.2.0";
 export const STORAGE_VERSION_KEY = "acp.storageVersion";
 
 /**
