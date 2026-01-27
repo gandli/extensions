@@ -64,13 +64,12 @@ export function ConverterForm({ initialFiles = [] }: { initialFiles?: string[] }
   const [currentQualitySetting, setCurrentQualitySetting] = useState<QualitySettings | null>(null);
   const [simpleQuality, setSimpleQuality] = useState<QualityLevel>(DEFAULT_SIMPLE_QUALITY);
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!!(initialFiles && initialFiles.length > 0));
 
   useEffect(() => {
     if (initialFiles && initialFiles.length > 0) {
       handleFileSelect(initialFiles);
     } else {
-      // TODO: fix this
       setIsLoading(false);
     }
   }, [initialFiles]);
