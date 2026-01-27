@@ -499,8 +499,15 @@ It supports:
                   />
                 );
               case PropertyFormat.Files:
-                // TODO: implement
-                return null;
+                return (
+                  <Form.FilePicker
+                    {...restItemProps}
+                    key={property.id}
+                    title={title}
+                    allowMultipleSelection={true}
+                    value={Array.isArray(value) ? (value as string[]) : []}
+                  />
+                );
               case PropertyFormat.Checkbox:
                 return (
                   <Form.Checkbox key={property.id} {...restItemProps} title={title} label="" value={Boolean(value)} />
