@@ -11,6 +11,27 @@ function checkGraphValid(graphName: string, token: string) {
   // return graphApi(graphName, token).q("[:find ?e . :where [?e :block/uid]]");
 }
 
+function getValidationErrorMessage(error: any): string {
+  let message = error instanceof Error ? error.message : String(error);
+
+  if (message.includes("Invalid token") || message.includes("Token cannot be verified")) {
+    return "Invalid token or insufficient privileges.";
+  } else if (message.includes("Too many requests")) {
+    return "Rate limited. Try again later.";
+  } else if (message.includes("503")) {
+    return "Service unavailable. Try again later.";
+  } else if (message.includes("fetch") || message.includes("network") || message.includes("ECONNREFUSED")) {
+    return "Network error. Check connection.";
+  } else if (message.startsWith("Error: ")) {
+    message = message.substring(7);
+  }
+
+  if (message.length > 90) {
+    return message.substring(0, 87) + "...";
+  }
+  return message;
+}
+
 export function NewGraph() {
   const { graphsConfig, saveGraphConfig } = useGraphsConfig();
   const { pop } = useNavigation();
@@ -78,10 +99,7 @@ export function NewGraph() {
 
                 toast.style = Toast.Style.Failure;
                 toast.title = 'Failed to validate graph "' + graphName + '"';
-                // TODO: handle common cases of error
-                // TODO: might want to make this message smaller so that it appears fully in the toast
-                toast.message = "Please check name and token and try again.";
-                // toast.message = String(error);
+                toast.message = getValidationErrorMessage(error);
               }
             }}
           />
