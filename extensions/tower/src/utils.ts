@@ -30,27 +30,28 @@ export function towerCliRequiredMessage(): string {
 }
 
 async function extractBookmarks(obj: ImportedTowerBookmark[], parents?: string): Promise<Bookmark[]> {
-  const bookmarks: Bookmark[] = [];
-
   if (!obj || obj.length === 0) {
-    return Promise.resolve(bookmarks);
+    return Promise.resolve([]);
   }
 
-  obj.forEach(async (bookmark: ImportedTowerBookmark) => {
-    const name = parents ? `${parents} / ${bookmark.name}` : bookmark.name;
+  const results = await Promise.all(
+    obj.map(async (bookmark: ImportedTowerBookmark) => {
+      const name = parents ? `${parents} / ${bookmark.name}` : bookmark.name;
+      const currentBookmarks: Bookmark[] = [];
 
-    if (bookmark.children && bookmark.children.length > 0) {
-      const childBookmarks = await extractBookmarks(bookmark.children, name);
+      if (bookmark.children && bookmark.children.length > 0) {
+        const childBookmarks = await extractBookmarks(bookmark.children, name);
+        currentBookmarks.push(...childBookmarks);
+      }
 
-      childBookmarks.forEach((bookmark) => bookmarks.push(bookmark));
-    }
+      currentBookmarks.push(
+        new Bookmark(bookmark.fileURL, name, bookmark.lastOpenedDate, bookmark.repositoryIdentifier, bookmark.type)
+      );
+      return currentBookmarks;
+    })
+  );
 
-    bookmarks.push(
-      new Bookmark(bookmark.fileURL, name, bookmark.lastOpenedDate, bookmark.repositoryIdentifier, bookmark.type)
-    );
-  });
-
-  return Promise.resolve(bookmarks);
+  return results.flat();
 }
 
 export async function fetchBookmarks(): Promise<Bookmark[]> {
