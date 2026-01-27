@@ -291,7 +291,6 @@ export function CreateObjectForm({ draftValues, enableDrafts }: CreateObjectForm
           setListSearchText("");
           setObjectSearchText("");
         }}
-        storeValue={true}
         placeholder="Search channels..."
         info="Select the channel where the object will be created"
       >
@@ -305,7 +304,6 @@ export function CreateObjectForm({ draftValues, enableDrafts }: CreateObjectForm
         title="Type"
         value={selectedTypeId}
         onChange={setSelectedTypeId}
-        storeValue={true} // TODO: storeValue does not work here
         placeholder={`Search types in '${spaces.find((space) => space.id === selectedSpaceId)?.name}'...`}
         info="Select the type of object to create"
       >
@@ -319,7 +317,6 @@ export function CreateObjectForm({ draftValues, enableDrafts }: CreateObjectForm
         title="Template"
         value={selectedTemplateId}
         onChange={setSelectedTemplateId}
-        storeValue={true}
         placeholder={`Search templates for '${types.find((type) => type.id === selectedTypeId)?.name}'...`}
         info="Select the template to use for the object"
       >
@@ -341,7 +338,6 @@ export function CreateObjectForm({ draftValues, enableDrafts }: CreateObjectForm
         onChange={setSelectedListId}
         onSearchTextChange={setListSearchText}
         throttle={true}
-        storeValue={true}
         placeholder={`Search collections in '${spaces.find((space) => space.id === selectedSpaceId)?.name}'...`}
         info="Select the collection where the object will be added"
       >
