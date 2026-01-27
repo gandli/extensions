@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs";
 import os from "os";
 import { findFFmpegPath } from "./ffmpeg";
-import { execPromise } from "./exec";
+import { execPromise, spawnPromise } from "./exec";
 import {
   AllOutputExtension,
   OutputImageExtension,
@@ -42,6 +42,7 @@ export async function convertMedia<T extends AllOutputExtension>(
   outputFormat: T,
   quality: QualitySettings,
   returnCommandString = false,
+  onProgress?: (progress: number) => void,
 ): Promise<string> {
   const ffmpegPath = await findFFmpegPath();
 
@@ -49,6 +50,31 @@ export async function convertMedia<T extends AllOutputExtension>(
   if (!ffmpegPath) {
     throw new Error("FFmpeg is not installed or configured. Please install FFmpeg to use this converter.");
   }
+
+  let totalDurationInSeconds = 0;
+  const handleProgress = (data: string) => {
+    if (!onProgress) return;
+
+    // Parse Duration if not yet found
+    if (totalDurationInSeconds === 0) {
+      const durationMatch = data.match(/Duration: (\d{2}):(\d{2}):(\d{2}\.\d{2})/);
+      if (durationMatch) {
+        const [, hours, minutes, seconds] = durationMatch;
+        totalDurationInSeconds = parseInt(hours) * 3600 + parseInt(minutes) * 60 + parseFloat(seconds);
+      }
+    }
+
+    // Parse time and calculate progress
+    if (totalDurationInSeconds > 0) {
+      const timeMatch = data.match(/time=(\d{2}):(\d{2}):(\d{2}\.\d{2})/);
+      if (timeMatch) {
+        const [, hours, minutes, seconds] = timeMatch;
+        const currentTimeInSeconds = parseInt(hours) * 3600 + parseInt(minutes) * 60 + parseFloat(seconds);
+        const progress = Math.min(100, Math.round((currentTimeInSeconds / totalDurationInSeconds) * 100));
+        onProgress(progress);
+      }
+    }
+  };
 
   let ffmpegCmd = `"${ffmpegPath.path}" -i`;
   const currentMediaType = getMediaType(path.extname(filePath))!;
@@ -248,7 +274,7 @@ export async function convertMedia<T extends AllOutputExtension>(
         return ffmpegCmd;
       }
       console.log(`Executing FFmpeg audio command: ${ffmpegCmd}`);
-      await execPromise(ffmpegCmd);
+      await spawnPromise(ffmpegCmd, { onStderr: handleProgress });
       return finalOutputPath;
     }
 
@@ -355,7 +381,7 @@ export async function convertMedia<T extends AllOutputExtension>(
           return ffmpegCmd;
         }
         console.log(`Executing FFmpeg video command: ${ffmpegCmd}`);
-        await execPromise(ffmpegCmd);
+        await spawnPromise(ffmpegCmd, { onStderr: handleProgress });
         return finalOutputPath;
       } finally {
         // Clean up 2-pass log files if they exist
