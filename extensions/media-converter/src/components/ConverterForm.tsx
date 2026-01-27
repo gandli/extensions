@@ -174,35 +174,47 @@ export function ConverterForm({ initialFiles = [] }: { initialFiles?: string[] }
     setIsLoading(true);
     const toast = await showToast({
       style: Toast.Style.Animated,
-      // TODO: When converting video, we could show the progress percentage. This would require to find a solution when multiple files are being converted.
-      // I don't think it is possible to show the progress of images. Unsure about audio.
       title: `Converting ${currentFiles.length} file${currentFiles.length > 1 ? "s" : ""}...`,
     });
 
-    for (const item of currentFiles) {
+    for (let i = 0; i < currentFiles.length; i++) {
+      const item = currentFiles[i];
+
       try {
         if (!outputFormat || !currentQualitySetting) {
           throw new Error("Output format and quality settings must be configured");
         }
 
-        const outputPath = await convertMedia(item, outputFormat, currentQualitySetting);
+        toast.style = Toast.Style.Animated;
+        if (currentFiles.length > 1) {
+          toast.title = `Converting file ${i + 1} of ${currentFiles.length}`;
+        } else {
+          toast.title = `Converting...`;
+        }
+        toast.message = "0%";
 
-        await toast.hide();
-        // TODO: Add proper toast success when having multiple files being converted, like "successfully converted 1 file out of 5", etc.
-        // Should also handle edge cases, such as when the user is converting a file to something, then converts it again to another:
-        // like a queue system for handling multiple files.
-        await showToast({
-          style: Toast.Style.Success,
-          title: "File converted successfully!",
-          message: "⌘O to open the file",
-          primaryAction: {
-            title: "Open File",
-            shortcut: { modifiers: ["cmd"], key: "o" },
-            onAction: () => {
-              showInFinder(outputPath);
+        const handleProgress = (progress: number) => {
+          toast.message = `${progress}%`;
+        };
+
+        const outputPath = await convertMedia(item, outputFormat, currentQualitySetting, false, handleProgress);
+
+        // Only show success toast for the last file or if there was only one file
+        if (i === currentFiles.length - 1) {
+          await toast.hide();
+          await showToast({
+            style: Toast.Style.Success,
+            title: "File converted successfully!",
+            message: "⌘O to open the file",
+            primaryAction: {
+              title: "Open File",
+              shortcut: { modifiers: ["cmd"], key: "o" },
+              onAction: () => {
+                showInFinder(outputPath);
+              },
             },
-          },
-        });
+          });
+        }
       } catch (error) {
         await toast.hide();
         const errorMessage = String(error);
